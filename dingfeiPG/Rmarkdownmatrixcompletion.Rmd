@@ -1,0 +1,86 @@
+---
+title: "Matrix Completion"
+author: "Fei Ding"
+date: "2017/11/10"
+output: html_document
+---
+## Algorithm Description
+**Algorithm preparation**:  
+  
+define the  SVThresholding function,the  SVThresholding function is the singular value thresholding operator.  
+For $A \in R^{m\times n}$,its condensed SVD is $A = U_r\Sigma_rV_r$,for constant $\lambda > 0$,the singular value thresholding operator is   
+$SVThresholding(A) =U_r[\Sigma_r-\lambda I_r]_{+}V_r^T$,  
+where $[\Sigma_r-\lambda I_r]_{+} = diag(\sigma_1-\lambda)_+,\dots,[\sigma_r-\lambda]_+)$.  
+  
+Also define the the function of PCOmegaY,it is defined as follows:  
+For any matrix $Y = (y_ij)\in R^{m\times n}$,the $PCOmegaY(Y) = (\tilde{y}_{ij})\in R^{m\times n}$ and   
+$\tilde{y}=
+ \begin{cases}
+   0 &(i,j)\in \Omega \\
+   y_{ij}\,&(i,j)\notin \Omega
+   \end{cases}$  
+where $\Omega$ is the subset of the the observed elements.  
+  
+**Step0** Take $Y_1 = Z_0$,$Z_0$ is zeros matrix.,$t_1 = 1$  
+  
+**Step k** $(k\geq 1)$ Compute   
+$Z_k = SVThresholding(PCOmegaY(Y_k)+X)$  
+$t_{k+1} = \frac{1+\sqrt{1+4t_k^2}}{2}$  
+$Y_{k+1}=Z_k+(\frac{t_k-1}{t_{k+1}})(Z_k-Z_{k-1})$  
+  
+**Loop until convergence**  
+
+##Complete the picture filling task
+**library the package**  
+
+The task of matrix completion algorithm has been packed into R package named "dingfeiPG".The first thing we have to do is to library the package.
+
+
+```{r}
+library("dingfeiPG")
+```
+
+**Read the Picture and Plot the Graph**  
+
+````{r}
+# read in image and plot
+library(jpeg)
+img = readJPEG("./23.jpg")
+img = img[,,1]
+par(mar = c(0,0,0,0))
+plot(0,0,type = "n")
+rasterImage(img, -1, -1, 1, 1)
+````
+
+**Define the Set of Elements that are not Censored**  
+
+```{r}
+# Define the set of elements that are not censored
+#get the dim of the img matrix
+m = dim(img)
+n = dim(img)
+#generate the Omega set
+set.seed(100)
+index = sample(c(1:length(img)),round(length(img)*0.4))
+Omega = setdiff(1:length(img),index)
+```
+
+**Plot the Censored Plot Using the Omege Set**    
+
+```{r}
+#plot the censored plot using the Omege set
+Pimg = img
+Pimg[index] = 0
+par(mar = c(0,0,0,0))
+plot(0,0,type = "n")
+rasterImage(Pimg, -1, -1, 1, 1)
+```
+
+**Using the Package to Fill the Picture**  
+
+```{r}
+Pcomplete = dingfeiPG(Pimg,lambda = 0.23,Omega = Omega,index = index,maxinteration = 100)
+par(mar = c(0,0,0,0))
+plot(0,0,type = "n")
+rasterImage(Pcomplete,-1,-1,1,1)
+```

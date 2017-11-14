@@ -1,0 +1,3 @@
+useDynLib(dingfeiPG)
+importFrom(Rcpp, evalCpp)
+exportPattern("^[[:alpha:]]+")
